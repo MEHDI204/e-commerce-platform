@@ -33,13 +33,13 @@ export default function CartIndex() {
           {/* Logo */}
           <div className="mb-10 flex justify-center">
             <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center transform -rotate-6 hover:rotate-0 transition-transform duration-500 shadow-lg cursor-pointer">
-              <span className="text-white text-3xl font-bold font-serif select-none">S</span>
+              <span className="text-white text-3xl font-bold font-serif select-none">SM</span>
             </div>
           </div>
 
           {/* Headline */}
           <h2 className="text-lg md:text-xl font-normal mb-6 text-gray-900 tracking-wide">
-            A brand that strives to inspire and push creative culture forward.
+            A brand that strives to inspire and push creative culture forward, CHATGPT W KDA HHH.
           </h2>
           
           {/* Paragraph text from image */}
