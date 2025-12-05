@@ -18,9 +18,12 @@ export default function CartIndex() {
           </h1>
           <Link
             href={route('products.index')} >
-            <button className="bg-[#FDE047] hover:bg-yellow-300 text-black px-10 py-4 rounded-lg text-sm font-medium tracking-wide transition-colors duration-200">
+            <button
+              className="bg-[#FDE047] hover:bg-yellow-300 text-black px-10 py-4 rounded-lg text-sm font-medium tracking-wide
+             transition-all duration-200 hover:scale-105 hover:shadow-lg">
               Continue shopping
             </button>
+
           </Link>
         </div>
 

@@ -1,6 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link, usePage } from '@inertiajs/react';
-import { ShoppingCart, Search, User, ChevronDown, X } from 'lucide-react';
+import { ShoppingCart, Search, User, ChevronDown, X, Menu } from 'lucide-react';
 import { useState } from 'react';
 
 export default function PublicLayout({ children }) {
@@ -9,16 +9,42 @@ export default function PublicLayout({ children }) {
     const [searchOpen, setSearchOpen] = useState(false);
     const [country, setCountry] = useState('Canada (CAD $)');
 
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useState(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 50);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
         <div className="min-h-screen bg-white">
             {/* Header */}
-            <header className="border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <header className={`border-b border-gray-200 fixed top-0 left-0 right-0 bg-white z-50 transition-all duration-300 ${isScrolled ? 'py-3 shadow-md' : 'py-6'}`}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between">
-                        {/* Logo */}
-                        <Link href={route('home')} className="text-2xl font-bold tracking-tight">
-                            <div>SAAD</div>
-                            <div>mehdi</div>
+                        {/* Left - Category Menu */}
+                        <div className="flex items-center gap-4">
+                            <button 
+                                className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                            >
+                                <Menu className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Center - Logo */}
+                        <Link href={route('home')} className={`absolute left-1/2 -translate-x-1/2 font-extrabold tracking-tight text-outline transition-all duration-300 ${isScrolled ? 'text-xl' : 'text-3xl leading-none'}`}>
+                            {isScrolled ? (
+                                <div>SAAD & MEHDI</div>
+                            ) : (
+                                <>
+                                    <div>SAAD</div>
+                                    <div>mehdi</div>
+                                </>
+                            )}
                         </Link>
 
                         {/* Right Icons */}
@@ -82,7 +108,7 @@ export default function PublicLayout({ children }) {
             )}
 
             {/* Main Content */}
-            <main>{children}</main>
+            <main className="pt-[89px]">{children}</main>
 
             {/* Footer */}
             <footer className="border-t border-gray-200 bg-white mt-16">
