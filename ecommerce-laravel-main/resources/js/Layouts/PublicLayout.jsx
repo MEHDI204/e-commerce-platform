@@ -1,7 +1,7 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link, usePage } from '@inertiajs/react';
 import { ShoppingCart, Search, User, ChevronDown, X, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function PublicLayout({ children }) {
     const { auth } = usePage().props;
@@ -11,7 +11,7 @@ export default function PublicLayout({ children }) {
 
     const [isScrolled, setIsScrolled] = useState(false);
 
-    useState(() => {
+    useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 50);
         };
@@ -85,21 +85,26 @@ export default function PublicLayout({ children }) {
 
             {/* Search Overlay */}
             {searchOpen && (
-                <div className="bg-white border-b border-gray-200 p-4">
+                <div className="bg-white border-b border-gray-200 fixed top-[73px] left-0 right-0 z-40 p-4">
                     <div className="max-w-7xl mx-auto flex items-center gap-4">
                         <div className="flex-1 relative">
                             <input
                                 type="text"
-                                placeholder="Search"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                                placeholder="Search products..."
+                                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                                autoFocus
                             />
-                            <button className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <button 
+                                type="button"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
+                            >
                                 <Search className="w-5 h-5 text-gray-400" />
                             </button>
                         </div>
                         <button 
                             onClick={() => setSearchOpen(false)}
-                            className="p-2 hover:bg-gray-50 rounded-full"
+                            className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                            type="button"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -108,7 +113,7 @@ export default function PublicLayout({ children }) {
             )}
 
             {/* Main Content */}
-            <main className="pt-[89px]">{children}</main>
+            <main className={`pt-[89px] transition-all duration-300 ${searchOpen ? 'pt-[145px]' : ''}`}>{children}</main>
 
             {/* Footer */}
             <footer className="border-t border-gray-200 bg-white mt-16">
