@@ -9,6 +9,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\DashboardController;
 
 // Public routes
 Route::get('/', [ProductsController::class, 'index'])->name('home');
@@ -23,9 +24,7 @@ Route::delete('/cart/{id}', [CartController::class, 'destroy'])->name('cart.dest
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

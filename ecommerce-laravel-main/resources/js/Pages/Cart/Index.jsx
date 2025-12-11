@@ -1,6 +1,7 @@
+import React, { useState } from 'react';
+import { ShoppingBag, Facebook, Instagram, Youtube, Twitter, Sparkles, Minus, Plus, X } from 'lucide-react';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router, Link } from '@inertiajs/react';
 
 export default function Index({ cartItems, total }) {
     const [updating, setUpdating] = useState(null);
@@ -26,180 +27,224 @@ export default function Index({ cartItems, total }) {
         });
     };
 
+    // Empty cart state
     if (!cartItems || cartItems.length === 0) {
         return (
             <PublicLayout>
                 <Head title="Shopping Cart" />
-                <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                    <h1 className="mb-8 text-3xl font-bold text-gray-900">Shopping Cart</h1>
-                    <div className="rounded-lg bg-white p-12 text-center shadow">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <h3 className="mt-4 text-lg font-medium text-gray-900">Your cart is empty</h3>
-                        <p className="mt-2 text-sm text-gray-500">Start shopping to add items to your cart.</p>
-                        <div className="mt-6">
-                            <Link
-                                href={route('products.index')}
-                                className="inline-flex items-center rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-                            >
-                                Continue Shopping
-                            </Link>
+                
+                <div className="min-h-screen bg-white">
+                    
+                    {/* 1. Enhanced Empty State Section */}
+                    <div className="py-32 text-center px-4 relative overflow-hidden">
+                        {/* Subtle background decoration */}
+                        <div className="absolute inset-0 -z-10">
+                            <div className="absolute top-20 left-1/4 w-72 h-72 bg-yellow-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+                            <div className="absolute top-40 right-1/4 w-72 h-72 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
+                        </div>
+
+                        {/* Shopping bag icon */}
+                        <div className="mb-8 flex justify-center">
+                            <div className="relative">
+                                <ShoppingBag className="w-20 h-20 text-gray-300" strokeWidth={1.5} />
+                                <Sparkles className="w-6 h-6 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
+                            </div>
+                        </div>
+
+                        <h1 className="text-5xl md:text-6xl font-light mb-4 text-gray-900 tracking-tight">
+                            Your cart is empty
+                        </h1>
+                        
+                        <p className="text-gray-500 text-lg mb-10 max-w-md mx-auto font-light">
+                            Looks like you haven't added anything yet. Let's find something special for you.
+                        </p>
+
+                        <Link 
+                            href={route('products.index')}
+                            className="inline-block group relative bg-black hover:bg-gray-900 text-white px-12 py-4 rounded-full text-sm font-medium tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-2xl overflow-hidden"
+                        >
+                            <span className="relative z-10">Explore Products</span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-300 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                            <span className="absolute inset-0 flex items-center justify-center text-black font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+                                Let's Go →
+                            </span>
+                        </Link>
+                    </div>
+
+                    {/* Elegant Divider */}
+                    <div className="max-w-4xl mx-auto px-6">
+                        <div className="border-t border-gray-200"></div>
+                    </div>
+
+                    {/* 2. Enhanced Brand Philosophy Section */}
+                    <div className="py-32 text-center max-w-3xl mx-auto px-6">
+                        
+                        {/* Logo with improved animation */}
+                        <div className="mb-12 flex justify-center">
+                            <div className="relative group cursor-pointer">
+                                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-2xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                                <div className="relative w-20 h-20 bg-black rounded-2xl flex items-center justify-center transform -rotate-6 group-hover:rotate-0 transition-all duration-500 shadow-xl group-hover:shadow-2xl">
+                                    <span className="text-white text-4xl font-bold font-serif select-none">SM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Headline with better spacing */}
+                        <h2 className="text-2xl md:text-3xl font-light mb-8 text-gray-900 tracking-wide leading-relaxed">
+                            A brand that strives to inspire and push creative culture forward
+                        </h2>
+                        
+                        {/* Description with improved readability */}
+                        <p className="text-gray-600 text-base leading-8 mb-16 font-light max-w-2xl mx-auto">
+                            We approach our work with the mentality that every product made is a learning experience to
+                            improve our craft. We are practitioners and purveyors of creative culture and are inspired
+                            by its various forms from art, design, fashion, music, film, food, and more.
+                        </p>
+
+                        {/* Enhanced Social Icons */}
+                        <div className="flex justify-center gap-6 items-center">
+                            <a href="#" className="group relative">
+                                <div className="absolute inset-0 bg-blue-500 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                                <div className="relative w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-blue-600 hover:border-blue-600 transition-all duration-300 hover:scale-110 bg-white">
+                                    <Facebook className="w-5 h-5" />
+                                </div>
+                            </a>
+                            
+                            <a href="#" className="group relative">
+                                <div className="absolute inset-0 bg-pink-500 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                                <div className="relative w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-pink-600 hover:border-pink-600 transition-all duration-300 hover:scale-110 bg-white">
+                                    <Instagram className="w-5 h-5" />
+                                </div>
+                            </a>
+                            
+                            <a href="#" className="group relative">
+                                <div className="absolute inset-0 bg-red-500 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                                <div className="relative w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-red-600 hover:border-red-600 transition-all duration-300 hover:scale-110 bg-white">
+                                    <Youtube className="w-5 h-5" />
+                                </div>
+                            </a>
+                            
+                            <a href="#" className="group relative">
+                                <div className="absolute inset-0 bg-gray-900 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                                <div className="relative w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-gray-900 hover:border-gray-900 transition-all duration-300 hover:scale-110 bg-white">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                                    </svg>
+                                </div>
+                            </a>
+                            
+                            <a href="#" className="group relative">
+                                <div className="absolute inset-0 bg-sky-500 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                                <div className="relative w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-sky-500 hover:border-sky-500 transition-all duration-300 hover:scale-110 bg-white">
+                                    <Twitter className="w-5 h-5" />
+                                </div>
+                            </a>
                         </div>
                     </div>
+
+                    {/* Bottom spacing */}
+                    <div className="pb-16"></div>
                 </div>
             </PublicLayout>
         );
     }
 
+    // Cart with items
     return (
         <PublicLayout>
             <Head title="Shopping Cart" />
-            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <h1 className="mb-8 text-3xl font-bold text-gray-900">Shopping Cart</h1>
-
-                <div className="grid gap-8 lg:grid-cols-3">
-                    <div className="lg:col-span-2">
-                        <div className="space-y-4">
-                            {cartItems.map((item) => {
-                                const product = item.product;
-                                const itemTotal = item.quantity * parseFloat(product.price);
-                                const primaryImage = product.primary_image;
-
-                                return (
-                                    <div key={item.id} className="flex gap-4 rounded-lg bg-white p-4 shadow">
-                                        <Link href={route('products.show', product.id)} className="shrink-0">
-                                            <div className="h-24 w-24 overflow-hidden rounded-lg bg-gray-200">
-                                                {primaryImage ? (
-                                                    <img
-                                                        src={primaryImage.image_url}
-                                                        alt={primaryImage.alt_text || product.name}
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-full items-center justify-center text-gray-400">
-                                                        <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                        </svg>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </Link>
-
-                                        <div className="flex flex-1 flex-col">
-                                            <div className="flex flex-1 justify-between">
-                                                <div className="flex-1">
-                                                    <Link
-                                                        href={route('products.show', product.id)}
-                                                        className="text-lg font-semibold text-gray-900 hover:text-gray-600"
-                                                    >
-                                                        {product.name}
-                                                    </Link>
-                                                    {product.category && (
-                                                        <p className="mt-1 text-sm text-gray-500">
-                                                            {product.category.name}
-                                                        </p>
-                                                    )}
-                                                    <p className="mt-2 text-sm font-medium text-gray-900">
-                                                        ${parseFloat(product.price).toFixed(2)}
-                                                    </p>
-                                                </div>
-
-                                                <button
-                                                    onClick={() => handleRemove(item.id)}
-                                                    disabled={removing === item.id}
-                                                    className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                                                >
-                                                    {removing === item.id ? (
-                                                        <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                        </svg>
-                                                    ) : (
-                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    )}
-                                                </button>
-                                            </div>
-
-                                            <div className="mt-4 flex items-center justify-between">
-                                                <div className="flex items-center space-x-2">
-                                                    <button
-                                                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                                                        disabled={updating === item.id || item.quantity <= 1}
-                                                        className="rounded-md border border-gray-300 px-2 py-1 text-sm hover:bg-gray-50 disabled:opacity-50"
-                                                    >
-                                                        -
-                                                    </button>
-                                                    <span className="w-12 text-center text-sm font-medium">
-                                                        {updating === item.id ? '...' : item.quantity}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                                                        disabled={updating === item.id || item.quantity >= product.stock_quantity}
-                                                        className="rounded-md border border-gray-300 px-2 py-1 text-sm hover:bg-gray-50 disabled:opacity-50"
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-
-                                                <div className="text-right">
-                                                    <p className="text-sm text-gray-500">Subtotal</p>
-                                                    <p className="text-lg font-semibold text-gray-900">
-                                                        ${itemTotal.toFixed(2)}
-                                                    </p>
-                                                </div>
-                                            </div>
+            
+            <div className="min-h-screen bg-gray-50 py-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h1 className="text-4xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Cart items */}
+                        <div className="lg:col-span-2 space-y-4">
+                            {cartItems.map((item) => (
+                                <div key={item.id} className="bg-white rounded-xl shadow-sm p-6 flex gap-6">
+                                    {/* Product Image */}
+                                    <img 
+                                        src={item.product.primary_image?.image_url || '/placeholder.jpg'} 
+                                        alt={item.product.name}
+                                        className="w-24 h-24 object-cover rounded-lg"
+                                    />
+                                    
+                                    {/* Product Details */}
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-lg text-gray-900">{item.product.name}</h3>
+                                        <p className="text-gray-500 text-sm mt-1">{item.product.category?.name}</p>
+                                        <p className="text-xl font-bold text-gray-900 mt-2">${item.product.price}</p>
+                                    </div>
+                                    
+                                    {/* Quantity Controls */}
+                                    <div className="flex flex-col items-end justify-between">
+                                        <button
+                                            onClick={() => handleRemove(item.id)}
+                                            disabled={removing === item.id}
+                                            className="text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                        
+                                        <div className="flex items-center gap-3 bg-gray-100 rounded-lg px-3 py-2">
+                                            <button
+                                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                                                disabled={updating === item.id || item.quantity <= 1}
+                                                className="text-gray-600 hover:text-black disabled:opacity-30 transition-colors"
+                                            >
+                                                <Minus className="w-4 h-4" />
+                                            </button>
+                                            <span className="font-semibold text-gray-900 w-8 text-center">
+                                                {item.quantity}
+                                            </span>
+                                            <button
+                                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                                                disabled={updating === item.id}
+                                                className="text-gray-600 hover:text-black disabled:opacity-30 transition-colors"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </div>
-                                );
-                            })}
+                                </div>
+                            ))}
                         </div>
-
-                        <div className="mt-6">
-                            <Link
-                                href={route('products.index')}
-                                className="text-sm text-gray-600 hover:text-gray-900"
-                            >
-                                ← Continue Shopping
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* Order Summary */}
-                    <div className="lg:col-span-1">
-                        <div className="rounded-lg bg-white p-6 shadow">
-                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Order Summary</h2>
-                            
-                            <div className="space-y-2 border-b border-gray-200 pb-4">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Subtotal</span>
-                                    <span className="text-gray-900">${total.toFixed(2)}</span>
+                        
+                        {/* Order Summary */}
+                        <div className="lg:col-span-1">
+                            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-6">
+                                <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+                                
+                                <div className="space-y-3 mb-6">
+                                    <div className="flex justify-between text-gray-600">
+                                        <span>Subtotal</span>
+                                        <span className="font-semibold">${total.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-gray-600">
+                                        <span>Shipping</span>
+                                        <span className="font-semibold">Free</span>
+                                    </div>
+                                    <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
+                                        <span>Total</span>
+                                        <span>${total.toFixed(2)}</span>
+                                    </div>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Tax (10%)</span>
-                                    <span className="text-gray-900">${(total * 0.1).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Shipping</span>
-                                    <span className="text-gray-900">$10.00</span>
-                                </div>
+                                
+                                <button
+                                    onClick={() => alert('Checkout feature coming soon!')}
+                                    className="block w-full bg-yellow-400 hover:bg-yellow-500 text-center text-black font-semibold py-4 rounded-full transition-colors shadow-sm"
+                                >
+                                    Proceed to Checkout
+                                </button>
+                                
+                                <Link
+                                    href={route('products.index')}
+                                    className="block w-full text-center text-gray-600 hover:text-gray-900 font-medium py-3 mt-3 transition-colors"
+                                >
+                                    Continue Shopping
+                                </Link>
                             </div>
-
-                            <div className="mt-4 flex justify-between border-b border-gray-200 pb-4">
-                                <span className="text-lg font-semibold text-gray-900">Total</span>
-                                <span className="text-lg font-semibold text-gray-900">
-                                    ${(total + total * 0.1 + 10).toFixed(2)}
-                                </span>
-                            </div>
-
-                            <Link
-                                href={route('orders.checkout')}
-                                className="mt-6 block w-full rounded-md bg-gray-800 px-4 py-3 text-center text-sm font-medium text-white hover:bg-gray-700"
-                            >
-                                Proceed to Checkout
-                            </Link>
                         </div>
                     </div>
                 </div>
@@ -207,4 +252,3 @@ export default function Index({ cartItems, total }) {
         </PublicLayout>
     );
 }
-

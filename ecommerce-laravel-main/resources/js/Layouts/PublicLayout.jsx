@@ -1,86 +1,156 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link, usePage } from '@inertiajs/react';
+import { ShoppingCart, Search, User, ChevronDown, X, Menu } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function PublicLayout({ children }) {
     const { auth } = usePage().props;
     const user = auth?.user;
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [country, setCountry] = useState('Canada (CAD $)');
+
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 50);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <nav className="bg-white shadow-sm">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <Link href="/" className="flex shrink-0 items-center">
-                                <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                <span className="ml-2 text-xl font-bold text-gray-800">Shop</span>
-                            </Link>
-                            <div className="hidden space-x-8 sm:ml-10 sm:flex">
-                                <Link
-                                    href={route('home')}
-                                    className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                                >
-                                    Home
-                                </Link>
-                                <Link
-                                    href={route('products.index')}
-                                    className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                                >
-                                    Products
-                                </Link>
-                            </div>
+        <div className="min-h-screen bg-white">
+            {/* Header */}
+            <header className={`border-b border-gray-200 fixed top-0 left-0 right-0 bg-white z-50 transition-all duration-300 ${isScrolled ? 'py-3 shadow-md' : 'py-6'}`}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between">
+                        {/* Left - Category Menu */}
+                        <div className="flex items-center gap-4">
+                            <button 
+                                className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                            >
+                                <Menu className="w-5 h-5" />
+                            </button>
                         </div>
 
-                        <div className="flex items-center space-x-4">
-                            <Link
-                                href={route('cart.index')}
-                                className="relative rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                            >
-                                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                            </Link>
-
-                            {user ? (
-                                <div className="flex items-center space-x-4">
-                                    <Link
-                                        href={route('dashboard')}
-                                        className="text-sm text-gray-700 hover:text-gray-900"
-                                    >
-                                        {user.name}
-                                    </Link>
-                                    <Link
-                                        href={route('logout')}
-                                        method="post"
-                                        as="button"
-                                        className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-                                    >
-                                        Logout
-                                    </Link>
-                                </div>
+                        {/* Center - Logo */}
+                        <Link href={route('home')} className={`absolute left-1/2 -translate-x-1/2 font-extrabold tracking-tight text-outline transition-all duration-300 ${isScrolled ? 'text-xl' : 'text-3xl leading-none'}`}>
+                            {isScrolled ? (
+                                <div>SAAD & MEHDI</div>
                             ) : (
-                                <div className="flex items-center space-x-4">
-                                    <Link
-                                        href={route('login')}
-                                        className="text-sm text-gray-700 hover:text-gray-900"
-                                    >
-                                        Login
-                                    </Link>
-                                    <Link
-                                        href={route('register')}
-                                        className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-                                    >
-                                        Register
-                                    </Link>
-                                </div>
+                                <>
+                                    <div>SAAD</div>
+                                    <div>mehdi</div>
+                                </>
                             )}
+                        </Link>
+
+                        {/* Right Icons */}
+                        <div className="flex items-center gap-4">
+                            <button 
+                                onClick={() => setSearchOpen(!searchOpen)}
+                                className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                            >
+                                <Search className="w-5 h-5" />
+                            </button>
+                            
+                            {user ? (
+                                <Link 
+                                    href={route('dashboard')}
+                                    className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                                >
+                                    <User className="w-5 h-5" />
+                                </Link>
+                            ) : (
+                                <Link 
+                                    href={route('login')}
+                                    className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                                >
+                                    <User className="w-5 h-5" />
+                                </Link>
+                            )}
+                            
+                            <Link 
+                                href={route('cart.index')}
+                                className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                            >
+                                <ShoppingCart className="w-5 h-5" />
+                            </Link>
                         </div>
                     </div>
                 </div>
-            </nav>
+            </header>
 
-            <main>{children}</main>
+            {/* Search Overlay */}
+            {searchOpen && (
+                <div className="bg-white border-b border-gray-200 fixed top-[73px] left-0 right-0 z-40 p-4">
+                    <div className="max-w-7xl mx-auto flex items-center gap-4">
+                        <div className="flex-1 relative">
+                            <input
+                                type="text"
+                                placeholder="Search products..."
+                                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                                autoFocus
+                            />
+                            <button 
+                                type="button"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
+                            >
+                                <Search className="w-5 h-5 text-gray-400" />
+                            </button>
+                        </div>
+                        <button 
+                            onClick={() => setSearchOpen(false)}
+                            className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+                            type="button"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Main Content */}
+            <main className={`pt-[89px] transition-all duration-300 ${searchOpen ? 'pt-[145px]' : ''}`}>{children}</main>
+
+            {/* Footer */}
+            <footer className="border-t border-gray-200 bg-white mt-16">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">Country/region</span>
+                            <div className="relative">
+                                <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm hover:border-gray-400 transition-colors">
+                                    {country}
+                                    <ChevronDown className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Payment Icons */}
+                        <div className="flex items-center gap-2">
+                            <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">
+                                VISA
+                            </div>                                
+                            <div className="w-12 h-8 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-bold">
+                                AMEX
+                            </div>
+                            <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">
+                                PP
+                            </div>
+                            <div className="w-12 h-8 bg-orange-500 rounded flex items-center justify-center text-white text-xs font-bold">
+                                D
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
+                        © 2025, bifibwejfijjsnjknbfjkbfb
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }
-
