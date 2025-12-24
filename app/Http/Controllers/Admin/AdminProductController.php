@@ -201,6 +201,10 @@ class AdminProductController extends Controller
                 $validated['slug'] = $slug;
             }
 
+            // Remove 'image' from validated data as it's not a product table column
+            // Images are stored separately in the product_images table
+            unset($validated['image']);
+
             // Update product with validated data
             $product->update($validated);
 
