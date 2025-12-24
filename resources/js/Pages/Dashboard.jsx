@@ -16,28 +16,28 @@ import { useState, useEffect } from 'react';
  */
 export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
     // ==================== STATE MANAGEMENT ====================
-    
+
     // Products state
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [stockFilter, setStockFilter] = useState('all');
-    
+
     // Categories state
     const [categories, setCategories] = useState([]);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
-    
+
     // Product modal state
     const [showProductModal, setShowProductModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
-    
+
     // Loading and active tab states
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('products');
-    
+
     // Product form state
     const [productForm, setProductForm] = useState({
         name: '',
@@ -52,7 +52,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
         is_active: true,
         image: null
     });
-    
+
     // Category form state
     const [categoryForm, setCategoryForm] = useState({
         name: '',
@@ -61,7 +61,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
     });
 
     // ==================== DATA FETCHING ====================
-    
+
     /**
      * Fetch all products from the API
      */
@@ -101,7 +101,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
     }, []);
 
     // ==================== FILTERING LOGIC ====================
-    
+
     /**
      * Filter products based on search, category, and stock status
      */
@@ -118,7 +118,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
 
         // Filter by category
         if (selectedCategory !== 'all') {
-            filtered = filtered.filter(product => 
+            filtered = filtered.filter(product =>
                 product.category_id === parseInt(selectedCategory)
             );
         }
@@ -134,7 +134,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
     }, [searchQuery, selectedCategory, stockFilter, products]);
 
     // ==================== PRODUCT OPERATIONS ====================
-    
+
     /**
      * Open product modal for create/edit
      */
@@ -197,9 +197,15 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
 
         try {
             const formData = new FormData();
+
             Object.keys(productForm).forEach(key => {
                 if (productForm[key] !== null && productForm[key] !== '') {
-                    formData.append(key, productForm[key]);
+                    if (key === 'is_active') {
+                        // Convertir true/false en 1/0 pour Laravel
+                        formData.append(key, productForm[key] ? '1' : '0');
+                        } else {
+                        formData.append(key, productForm[key]);
+                    }
                 }
             });
 
@@ -214,7 +220,24 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                 body: formData
             });
 
-            const data = await response.json();
+            // NOUVEAU CODE ICI 👇
+            const responseText = await response.text();
+
+            // Si c'est du HTML (erreur), affiche-le
+            if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
+                console.error('HTML Error Response:', responseText);
+
+                // Ouvre dans nouvelle fenêtre
+                const errorWindow = window.open('', '_blank');
+                errorWindow.document.write(responseText);
+
+                alert('Erreur serveur! Une nouvelle fenêtre s\'est ouverte avec les détails.');
+                setLoading(false);
+                return;
+            }
+
+            const data = JSON.parse(responseText);
+
             if (response.ok) {
                 alert(data.message);
                 setShowProductModal(false);
@@ -224,7 +247,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
             }
         } catch (error) {
             console.error('Error saving product:', error);
-            alert('Failed to save product');
+            alert('Failed to save product: ' + error.message);
         } finally {
             setLoading(false);
         }
@@ -262,7 +285,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
     };
 
     // ==================== CATEGORY OPERATIONS ====================
-    
+
     /**
      * Open category modal for create/edit
      */
@@ -355,7 +378,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
     };
 
     // ==================== RENDER ====================
-    
+
     return (
         <AuthenticatedLayout
             header={
@@ -368,7 +391,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    
+
                     {/* ==================== STATISTICS CARDS ==================== */}
                     <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
@@ -441,21 +464,19 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                         <div className="flex space-x-8 px-6">
                             <button
                                 onClick={() => setActiveTab('products')}
-                                className={`border-b-2 py-4 px-1 text-sm font-medium ${
-                                    activeTab === 'products'
+                                className={`border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'products'
                                         ? 'border-indigo-500 text-indigo-600'
                                         : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                }`}
+                                    }`}
                             >
                                 Products Management
                             </button>
                             <button
                                 onClick={() => setActiveTab('categories')}
-                                className={`border-b-2 py-4 px-1 text-sm font-medium ${
-                                    activeTab === 'categories'
+                                className={`border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'categories'
                                         ? 'border-indigo-500 text-indigo-600'
                                         : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                }`}
+                                    }`}
                             >
                                 Categories Management
                             </button>
@@ -566,18 +587,16 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.category?.name || 'N/A'}</td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${parseFloat(product.price).toFixed(2)}</td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                                                product.stock_quantity === 0 ? 'bg-red-100 text-red-800' :
-                                                                product.stock_quantity < 10 ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-green-100 text-green-800'
-                                                            }`}>
+                                                            <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${product.stock_quantity === 0 ? 'bg-red-100 text-red-800' :
+                                                                    product.stock_quantity < 10 ? 'bg-yellow-100 text-yellow-800' :
+                                                                        'bg-green-100 text-green-800'
+                                                                }`}>
                                                                 {product.stock_quantity} units
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                                                product.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                                            }`}>
+                                                            <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${product.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                                                }`}>
                                                                 {product.is_active ? 'Active' : 'Inactive'}
                                                             </span>
                                                         </td>
@@ -639,9 +658,8 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{category.products_count || 0} products</td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                                                category.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                                            }`}>
+                                                            <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${category.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                                                }`}>
                                                                 {category.is_active ? 'Active' : 'Inactive'}
                                                             </span>
                                                         </td>
@@ -677,7 +695,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         type="text"
                                                         required
                                                         value={productForm.name}
-                                                        onChange={(e) => setProductForm({...productForm, name: e.target.value})}
+                                                        onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     />
                                                 </div>
@@ -687,7 +705,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         type="text"
                                                         required
                                                         value={productForm.sku}
-                                                        onChange={(e) => setProductForm({...productForm, sku: e.target.value})}
+                                                        onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
                                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     />
                                                 </div>
@@ -695,7 +713,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                     <label className="block text-sm font-medium text-gray-700">Category</label>
                                                     <select
                                                         value={productForm.category_id}
-                                                        onChange={(e) => setProductForm({...productForm, category_id: e.target.value})}
+                                                        onChange={(e) => setProductForm({ ...productForm, category_id: e.target.value })}
                                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     >
                                                         <option value="">No Category</option>
@@ -711,7 +729,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         step="0.01"
                                                         required
                                                         value={productForm.price}
-                                                        onChange={(e) => setProductForm({...productForm, price: e.target.value})}
+                                                        onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
                                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     />
                                                 </div>
@@ -721,7 +739,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         type="number"
                                                         step="0.01"
                                                         value={productForm.compare_price}
-                                                        onChange={(e) => setProductForm({...productForm, compare_price: e.target.value})}
+                                                        onChange={(e) => setProductForm({ ...productForm, compare_price: e.target.value })}
                                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     />
                                                 </div>
@@ -731,7 +749,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         type="number"
                                                         step="0.01"
                                                         value={productForm.cost}
-                                                        onChange={(e) => setProductForm({...productForm, cost: e.target.value})}
+                                                        onChange={(e) => setProductForm({ ...productForm, cost: e.target.value })}
                                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     />
                                                 </div>
@@ -741,7 +759,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         type="number"
                                                         required
                                                         value={productForm.stock_quantity}
-                                                        onChange={(e) => setProductForm({...productForm, stock_quantity: e.target.value})}
+                                                        onChange={(e) => setProductForm({ ...productForm, stock_quantity: e.target.value })}
                                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     />
                                                 </div>
@@ -751,7 +769,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         type="number"
                                                         step="0.001"
                                                         value={productForm.weight}
-                                                        onChange={(e) => setProductForm({...productForm, weight: e.target.value})}
+                                                        onChange={(e) => setProductForm({ ...productForm, weight: e.target.value })}
                                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     />
                                                 </div>
@@ -760,7 +778,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                     <textarea
                                                         rows="3"
                                                         value={productForm.description}
-                                                        onChange={(e) => setProductForm({...productForm, description: e.target.value})}
+                                                        onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     ></textarea>
                                                 </div>
@@ -783,7 +801,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         <input
                                                             type="checkbox"
                                                             checked={productForm.is_active}
-                                                            onChange={(e) => setProductForm({...productForm, is_active: e.target.checked})}
+                                                            onChange={(e) => setProductForm({ ...productForm, is_active: e.target.checked })}
                                                             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                                         />
                                                         <span className="ml-2 text-sm text-gray-700">Active</span>
@@ -830,7 +848,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                     type="text"
                                                     required
                                                     value={categoryForm.name}
-                                                    onChange={(e) => setCategoryForm({...categoryForm, name: e.target.value})}
+                                                    onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
                                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                 />
                                             </div>
@@ -839,7 +857,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                 <textarea
                                                     rows="3"
                                                     value={categoryForm.description}
-                                                    onChange={(e) => setCategoryForm({...categoryForm, description: e.target.value})}
+                                                    onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
                                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                 ></textarea>
                                             </div>
@@ -848,7 +866,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                     <input
                                                         type="checkbox"
                                                         checked={categoryForm.is_active}
-                                                        onChange={(e) => setCategoryForm({...categoryForm, is_active: e.target.checked})}
+                                                        onChange={(e) => setCategoryForm({ ...categoryForm, is_active: e.target.checked })}
                                                         className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                                     />
                                                     <span className="ml-2 text-sm text-gray-700">Active</span>

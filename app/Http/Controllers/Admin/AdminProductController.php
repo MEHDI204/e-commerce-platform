@@ -27,11 +27,11 @@ class AdminProductController extends Controller
         $products = Product::with(['category', 'images'])
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function($product) {
+            ->map(function ($product) {
                 // Find the primary image or use the first available image
-                $primaryImage = $product->images->where('is_primary', true)->first() 
+                $primaryImage = $product->images->where('is_primary', true)->first()
                     ?? $product->images->first();
-                
+
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
@@ -48,7 +48,7 @@ class AdminProductController extends Controller
                     'weight' => $product->weight,
                 ];
             });
-        
+
         return response()->json($products);
     }
 
@@ -78,7 +78,7 @@ class AdminProductController extends Controller
             'weight' => 'nullable|numeric|min:0',
             'category_id' => 'nullable|exists:categories,id',
             'is_active' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Max 10MB
         ]);
 
         try {
@@ -88,7 +88,7 @@ class AdminProductController extends Controller
             $slug = Str::slug($validated['name']);
             $originalSlug = $slug;
             $counter = 1;
-            
+
             // Ensure slug is unique by appending a number if necessary
             while (Product::where('slug', $slug)->exists()) {
                 $slug = $originalSlug . '-' . $counter;
@@ -113,13 +113,13 @@ class AdminProductController extends Controller
             // Handle image upload if provided
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
-                
+
                 // Generate unique filename: timestamp-random-originalname
                 $filename = time() . '-' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-                
+
                 // Store in public/storage/products directory
                 $path = $image->storeAs('products', $filename, 'public');
-                
+
                 // Create product image record with the primary flag set to true
                 ProductImage::create([
                     'product_id' => $product->id,
@@ -134,7 +134,7 @@ class AdminProductController extends Controller
 
             // Return the created product with its relationships
             $product->load('category', 'images');
-            
+
             return response()->json([
                 'message' => 'Product created successfully',
                 'product' => $product
@@ -142,7 +142,7 @@ class AdminProductController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'message' => 'Failed to create product',
                 'error' => $e->getMessage()
@@ -180,7 +180,7 @@ class AdminProductController extends Controller
             'weight' => 'nullable|numeric|min:0',
             'category_id' => 'nullable|exists:categories,id',
             'is_active' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
         ]);
 
         try {
@@ -191,13 +191,13 @@ class AdminProductController extends Controller
                 $slug = Str::slug($validated['name']);
                 $originalSlug = $slug;
                 $counter = 1;
-                
+
                 // Ensure new slug is unique
                 while (Product::where('slug', $slug)->where('id', '!=', $id)->exists()) {
                     $slug = $originalSlug . '-' . $counter;
                     $counter++;
                 }
-                
+
                 $validated['slug'] = $slug;
             }
 
@@ -208,19 +208,19 @@ class AdminProductController extends Controller
             if ($request->hasFile('image')) {
                 // Get the current primary image
                 $oldImage = $product->images()->where('is_primary', true)->first();
-                
+
                 // Delete old image file from storage if it exists
                 if ($oldImage && $oldImage->image_url) {
                     $oldPath = str_replace('/storage/', '', $oldImage->image_url);
                     Storage::disk('public')->delete($oldPath);
                     $oldImage->delete();
                 }
-                
+
                 // Upload and store new image
                 $image = $request->file('image');
                 $filename = time() . '-' . Str::random(10) . '.' . $image->getClientOriginalExtension();
                 $path = $image->storeAs('products', $filename, 'public');
-                
+
                 // Create new primary image record
                 ProductImage::create([
                     'product_id' => $product->id,
@@ -235,7 +235,7 @@ class AdminProductController extends Controller
 
             // Return updated product with relationships
             $product->load('category', 'images');
-            
+
             return response()->json([
                 'message' => 'Product updated successfully',
                 'product' => $product
@@ -243,7 +243,7 @@ class AdminProductController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'message' => 'Failed to update product',
                 'error' => $e->getMessage()
@@ -266,7 +266,7 @@ class AdminProductController extends Controller
     {
         try {
             $product = Product::findOrFail($id);
-            
+
             DB::beginTransaction();
 
             // Delete all associated image files from storage
@@ -288,7 +288,7 @@ class AdminProductController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'message' => 'Failed to delete product',
                 'error' => $e->getMessage()

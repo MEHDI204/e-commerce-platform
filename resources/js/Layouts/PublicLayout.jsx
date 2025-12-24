@@ -38,11 +38,11 @@ export default function PublicLayout({ children }) {
                         {/* Center - Logo */}
                         <Link href={route('home')} className={`absolute left-1/2 -translate-x-1/2 font-extrabold tracking-tight text-outline transition-all duration-300 ${isScrolled ? 'text-xl' : 'text-3xl leading-none'}`}>
                             {isScrolled ? (
-                                <div>SAAD & MEHDI</div>
+                                <div>WISY SHOP</div>
                             ) : (
                                 <>
-                                    <div>SAAD</div>
-                                    <div>mehdi</div>
+                                    
+                                    <div>WISY SHOP</div>
                                 </>
                             )}
                         </Link>
