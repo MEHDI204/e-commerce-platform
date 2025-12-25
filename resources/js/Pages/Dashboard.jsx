@@ -203,7 +203,7 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                     if (key === 'is_active') {
                         // Convertir true/false en 1/0 pour Laravel
                         formData.append(key, productForm[key] ? '1' : '0');
-                        } else {
+                    } else {
                         formData.append(key, productForm[key]);
                     }
                 }
@@ -279,6 +279,38 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
         } catch (error) {
             console.error('Error deleting product:', error);
             alert('Failed to delete product');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    /**
+     * Toggle product active status (activate/deactivate)
+     */
+    const handleToggleActive = async (productId, currentStatus) => {
+        const action = currentStatus ? 'deactivate' : 'activate';
+        if (!confirm(`Are you sure you want to ${action} this product?`)) return;
+        setLoading(true);
+
+        try {
+            const response = await fetch(`/admin/products/${productId}/toggle-active`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                fetchProducts();
+            } else {
+                alert(data.message || `Failed to ${action} product`);
+            }
+        } catch (error) {
+            console.error(`Error ${action}ing product:`, error);
+            alert(`Failed to ${action} product`);
         } finally {
             setLoading(false);
         }
@@ -465,8 +497,8 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                             <button
                                 onClick={() => setActiveTab('products')}
                                 className={`border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'products'
-                                        ? 'border-indigo-500 text-indigo-600'
-                                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                    ? 'border-indigo-500 text-indigo-600'
+                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                                     }`}
                             >
                                 Products Management
@@ -474,8 +506,8 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                             <button
                                 onClick={() => setActiveTab('categories')}
                                 className={`border-b-2 py-4 px-1 text-sm font-medium ${activeTab === 'categories'
-                                        ? 'border-indigo-500 text-indigo-600'
-                                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                    ? 'border-indigo-500 text-indigo-600'
+                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                                     }`}
                             >
                                 Categories Management
@@ -588,8 +620,8 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${parseFloat(product.price).toFixed(2)}</td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${product.stock_quantity === 0 ? 'bg-red-100 text-red-800' :
-                                                                    product.stock_quantity < 10 ? 'bg-yellow-100 text-yellow-800' :
-                                                                        'bg-green-100 text-green-800'
+                                                                product.stock_quantity < 10 ? 'bg-yellow-100 text-yellow-800' :
+                                                                    'bg-green-100 text-green-800'
                                                                 }`}>
                                                                 {product.stock_quantity} units
                                                             </span>
@@ -602,6 +634,12 @@ export default function Dashboard({ stats, recentOrders, lowStockProducts }) {
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                             <button onClick={() => handleProductModal(product)} className="mr-3 text-indigo-600 hover:text-indigo-900">Edit</button>
+                                                            <button
+                                                                onClick={() => handleToggleActive(product.id, product.is_active)}
+                                                                className={`mr-3 ${product.is_active ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'}`}
+                                                            >
+                                                                {product.is_active ? 'Deactivate' : 'Activate'}
+                                                            </button>
                                                             <button onClick={() => handleDeleteProduct(product.id)} className="text-red-600 hover:text-red-900">Delete</button>
                                                         </td>
                                                     </tr>

@@ -28,7 +28,7 @@ export default function PublicLayout({ children }) {
                     <div className="flex items-center justify-between">
                         {/* Left - Category Menu */}
                         <div className="flex items-center gap-4">
-                            <button 
+                            <button
                                 className="p-2 hover:bg-gray-50 rounded-full transition-colors"
                             >
                                 <Menu className="w-5 h-5" />
@@ -41,7 +41,7 @@ export default function PublicLayout({ children }) {
                                 <div>WISY SHOP</div>
                             ) : (
                                 <>
-                                    
+
                                     <div>WISY SHOP</div>
                                 </>
                             )}
@@ -49,30 +49,30 @@ export default function PublicLayout({ children }) {
 
                         {/* Right Icons */}
                         <div className="flex items-center gap-4">
-                            <button 
+                            <button
                                 onClick={() => setSearchOpen(!searchOpen)}
                                 className="p-2 hover:bg-gray-50 rounded-full transition-colors"
                             >
                                 <Search className="w-5 h-5" />
                             </button>
-                            
+
                             {user ? (
-                                <Link 
+                                <Link
                                     href={route('dashboard')}
                                     className="p-2 hover:bg-gray-50 rounded-full transition-colors"
                                 >
                                     <User className="w-5 h-5" />
                                 </Link>
                             ) : (
-                                <Link 
+                                <Link
                                     href={route('login')}
                                     className="p-2 hover:bg-gray-50 rounded-full transition-colors"
                                 >
                                     <User className="w-5 h-5" />
                                 </Link>
                             )}
-                            
-                            <Link 
+
+                            <Link
                                 href={route('cart.index')}
                                 className="p-2 hover:bg-gray-50 rounded-full transition-colors"
                             >
@@ -94,14 +94,14 @@ export default function PublicLayout({ children }) {
                                 className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
                                 autoFocus
                             />
-                            <button 
+                            <button
                                 type="button"
                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
                             >
                                 <Search className="w-5 h-5 text-gray-400" />
                             </button>
                         </div>
-                        <button 
+                        <button
                             onClick={() => setSearchOpen(false)}
                             className="p-2 hover:bg-gray-50 rounded-full transition-colors"
                             type="button"
@@ -133,7 +133,7 @@ export default function PublicLayout({ children }) {
                         <div className="flex items-center gap-2">
                             <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">
                                 VISA
-                            </div>                                
+                            </div>
                             <div className="w-12 h-8 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-bold">
                                 AMEX
                             </div>

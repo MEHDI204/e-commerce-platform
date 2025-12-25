@@ -271,6 +271,40 @@ class AdminProductController extends Controller
         try {
             $product = Product::findOrFail($id);
 
+            // DEBUG: Log detailed information
+            \Log::info("=== Product Deletion Attempt ===");
+            \Log::info("Product ID: {$id}");
+            \Log::info("Product Name: {$product->name}");
+            \Log::info("Product SKU: {$product->sku}");
+
+            // Check order items count using relationship
+            $orderItemsCount = $product->orderItems()->count();
+            \Log::info("Order Items Count (via relationship): {$orderItemsCount}");
+
+            // Check order items count directly from DB for comparison
+            $directCount = DB::table('order_items')->where('product_id', $id)->count();
+            \Log::info("Order Items Count (direct DB query): {$directCount}");
+
+            // If counts don't match, there's a problem
+            if ($orderItemsCount !== $directCount) {
+                \Log::warning("MISMATCH: Relationship count ({$orderItemsCount}) != DB count ({$directCount})");
+            }
+
+            // Check if product has any order items
+            // Products with order history cannot be deleted due to foreign key constraints
+            if ($product->orderItems()->count() > 0) {
+                \Log::info("Deletion BLOCKED: Product has {$product->orderItems()->count()} order items");
+                \Log::info("=== End Product Deletion Attempt ===\n");
+
+                return response()->json([
+                    'message' => 'Cannot delete this product because it has been ordered. You can deactivate it instead.',
+                    'hasOrders' => true,
+                    'orderItemsCount' => $product->orderItems()->count() // Added for debugging
+                ], 400);
+            }
+
+            \Log::info("Deletion ALLOWED: Product has 0 order items");
+
             DB::beginTransaction();
 
             // Delete all associated image files from storage
@@ -281,10 +315,19 @@ class AdminProductController extends Controller
                 }
             }
 
+            // Delete associated cart items (cascade will handle this, but we're being explicit)
+            $product->cartItems()->delete();
+
+            // Delete associated reviews (cascade will handle this too)
+            $product->reviews()->delete();
+
             // Delete product (cascade will delete product_images records)
             $product->delete();
 
             DB::commit();
+
+            \Log::info("Deletion SUCCESSFUL: Product deleted");
+            \Log::info("=== End Product Deletion Attempt ===\n");
 
             return response()->json([
                 'message' => 'Product deleted successfully'
@@ -295,6 +338,41 @@ class AdminProductController extends Controller
 
             return response()->json([
                 'message' => 'Failed to delete product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle product active status (activate/deactivate)
+     * 
+     * This is a safe alternative to deletion for products with order history.
+     * Deactivated products are hidden from the storefront but retain all data.
+     * 
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function toggleActive($id)
+    {
+        try {
+            $product = Product::findOrFail($id);
+
+            // Toggle the active status
+            $newStatus = !$product->is_active;
+            $product->update(['is_active' => $newStatus]);
+
+            $statusText = $newStatus ? 'activated' : 'deactivated';
+
+            \Log::info("Product {$statusText}: ID={$id}, Name={$product->name}");
+
+            return response()->json([
+                'message' => "Product {$statusText} successfully",
+                'is_active' => $newStatus
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update product status',
                 'error' => $e->getMessage()
             ], 500);
         }

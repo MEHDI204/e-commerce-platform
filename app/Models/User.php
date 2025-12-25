@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'is_active',
+        'is_admin',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'is_admin' => 'boolean',
         ];
     }
     // Relationships
@@ -82,7 +84,7 @@ class User extends Authenticatable
         static::creating(function (User $user) {
             $user->name = $user->first_name . ' ' . $user->last_name;
         });
-        
+
         static::updating(function (User $user) {
             $user->name = $user->first_name . ' ' . $user->last_name;
         });
