@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminOrderController;
+use App\Http\Controllers\Api\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,6 +38,9 @@ Route::patch('/cart/{cartItem}', [CartController::class, 'update'])->name('cart.
 Route::delete('/cart/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
 Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 
+// Search API - Public
+Route::get('/api/search', [SearchController::class, 'search'])->name('api.search');
+
 /*
 |--------------------------------------------------------------------------
 | Authenticated User Routes - Requires Login
@@ -44,7 +48,7 @@ Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 */
 
 Route::middleware('auth')->group(function () {
-    
+
     // User Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
