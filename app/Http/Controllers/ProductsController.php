@@ -8,6 +8,11 @@ use Inertia\Inertia;
 
 class ProductsController extends Controller
 {
+    /**
+     * Display a listing of all active products
+     * 
+     * @return \Inertia\Response
+     */
     public function index()
     {
         $products = Product::with('category', 'images')->active()->orderBy('name')->get();
@@ -18,16 +23,28 @@ class ProductsController extends Controller
                 ?? $product->images->first();
         });
         
-        return Inertia::render('Products/Index',[
+        return Inertia::render('Products/Index', [
             'products' => $products
         ]);
     }
 
-    public function show($id)
+    /**
+     * Display the specified product
+     * 
+     * Uses route model binding - Laravel automatically finds the product
+     * 
+     * @param  \App\Models\Product  $product
+     * @return \Inertia\Response
+     */
+    public function show(Product $product)
     {
-        $product = Product::with('category', 'images', 'reviews.user')
-            ->active()
-            ->findOrFail($id);
+        // Load relationships
+        $product->load('category', 'images', 'reviews.user');
+        
+        // Only show if product is active
+        if (!$product->is_active) {
+            abort(404, 'Product not found or is no longer available.');
+        }
         
         return Inertia::render('Products/Show', [
             'product' => $product,

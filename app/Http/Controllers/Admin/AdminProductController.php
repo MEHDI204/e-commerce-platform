@@ -153,6 +153,8 @@ class AdminProductController extends Controller
     /**
      * Update the specified product in the database
      * 
+     * Uses route model binding
+     * 
      * Handles:
      * - Updating all product fields
      * - Regenerating slug if name changes
@@ -160,18 +162,16 @@ class AdminProductController extends Controller
      * - Deleting old image file from storage
      * 
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Product $product)
     {
-        $product = Product::findOrFail($id);
-
         // Validate incoming request data
         // SKU must be unique except for the current product
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|max:100|unique:products,sku,' . $id,
+            'sku' => 'required|string|max:100|unique:products,sku,' . $product->id,
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'compare_price' => 'nullable|numeric|min:0',
@@ -193,7 +193,7 @@ class AdminProductController extends Controller
                 $counter = 1;
 
                 // Ensure new slug is unique
-                while (Product::where('slug', $slug)->where('id', '!=', $id)->exists()) {
+                while (Product::where('slug', $slug)->where('id', '!=', $product->id)->exists()) {
                     $slug = $originalSlug . '-' . $counter;
                     $counter++;
                 }
@@ -258,22 +258,24 @@ class AdminProductController extends Controller
     /**
      * Remove the specified product from the database
      * 
+     * Uses route model binding
+     * 
      * Handles:
+     * - Checking if product has order history
+     * - Preventing deletion if product has been ordered
      * - Deleting all associated product images from storage
      * - Deleting product image records
      * - Deleting the product (cascade will handle other relationships)
      * 
-     * @param  int  $id
+     * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
+    public function destroy(Product $product)
     {
         try {
-            $product = Product::findOrFail($id);
-
             // DEBUG: Log detailed information
             \Log::info("=== Product Deletion Attempt ===");
-            \Log::info("Product ID: {$id}");
+            \Log::info("Product ID: {$product->id}");
             \Log::info("Product Name: {$product->name}");
             \Log::info("Product SKU: {$product->sku}");
 
@@ -282,7 +284,7 @@ class AdminProductController extends Controller
             \Log::info("Order Items Count (via relationship): {$orderItemsCount}");
 
             // Check order items count directly from DB for comparison
-            $directCount = DB::table('order_items')->where('product_id', $id)->count();
+            $directCount = DB::table('order_items')->where('product_id', $product->id)->count();
             \Log::info("Order Items Count (direct DB query): {$directCount}");
 
             // If counts don't match, there's a problem
@@ -299,7 +301,7 @@ class AdminProductController extends Controller
                 return response()->json([
                     'message' => 'Cannot delete this product because it has been ordered. You can deactivate it instead.',
                     'hasOrders' => true,
-                    'orderItemsCount' => $product->orderItems()->count() // Added for debugging
+                    'orderItemsCount' => $product->orderItems()->count()
                 ], 400);
             }
 
@@ -346,24 +348,24 @@ class AdminProductController extends Controller
     /**
      * Toggle product active status (activate/deactivate)
      * 
+     * Uses route model binding
+     * 
      * This is a safe alternative to deletion for products with order history.
      * Deactivated products are hidden from the storefront but retain all data.
      * 
-     * @param  int  $id
+     * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\JsonResponse
      */
-    public function toggleActive($id)
+    public function toggleActive(Product $product)
     {
         try {
-            $product = Product::findOrFail($id);
-
             // Toggle the active status
             $newStatus = !$product->is_active;
             $product->update(['is_active' => $newStatus]);
 
             $statusText = $newStatus ? 'activated' : 'deactivated';
 
-            \Log::info("Product {$statusText}: ID={$id}, Name={$product->name}");
+            \Log::info("Product {$statusText}: ID={$product->id}, Name={$product->name}");
 
             return response()->json([
                 'message' => "Product {$statusText} successfully",

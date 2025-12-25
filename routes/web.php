@@ -14,21 +14,38 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminCategoryController;
+use App\Http\Controllers\Admin\AdminOrderController;
 
-// Public routes - accessible to everyone
+/*
+|--------------------------------------------------------------------------
+| Public Routes - Accessible to Everyone
+|--------------------------------------------------------------------------
+*/
+
+// Home & Products - Public browsing
 Route::get('/', [ProductsController::class, 'index'])->name('home');
 Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
-Route::get('/products/{id}', [ProductsController::class, 'show'])->name('products.show');
+Route::get('/products/{product}', [ProductsController::class, 'show'])->name('products.show');
 
-// Cart routes - public (works for guests too)
+// Categories - Public browsing (moved from auth)
+Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+
+// Cart - Public (supports guest checkout)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
-Route::patch('/cart/{id}', [CartController::class, 'update'])->name('cart.update');
-Route::delete('/cart/{id}', [CartController::class, 'destroy'])->name('cart.destroy');
+Route::patch('/cart/{cartItem}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
+Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 
-// Authenticated routes - requires user to be logged in
+/*
+|--------------------------------------------------------------------------
+| Authenticated User Routes - Requires Login
+|--------------------------------------------------------------------------
+*/
+
 Route::middleware('auth')->group(function () {
-    // User Profile routes
+    
+    // User Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -36,61 +53,51 @@ Route::middleware('auth')->group(function () {
     // Customer Addresses
     Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
 
-    // Orders
+    // Customer Orders
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
-    Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
-
-    // Categories (keeping auth for now)
-    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 });
 
-/**
- * Admin Routes
- * 
- * These routes are for admin/owner management of the e-commerce platform
- * Protected by 'auth' and 'admin' middleware - only authenticated admin users can access
- */
+/*
+|--------------------------------------------------------------------------
+| Admin Routes - Requires Authentication + Admin Role
+|--------------------------------------------------------------------------
+| 
+| Protected by 'auth' and 'admin' middleware
+| All routes are prefixed with /admin and named with 'admin.' prefix
+*/
+
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
-    // Admin Dashboard - shows statistics and overview
-    // Accessible at: /admin/dashboard
+    // Admin Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-    /**
-     * Admin Product Management Routes
-     * Uses Laravel's resource controller for RESTful operations
-     * 
-     * GET    /admin/products          -> index()   - List all products (JSON)
-     * POST   /admin/products          -> store()   - Create new product
-     * PUT    /admin/products/{id}     -> update()  - Update existing product
-     * DELETE /admin/products/{id}     -> destroy() - Delete product
-     */
-    Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
-    Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
-    Route::put('/products/{id}', [AdminProductController::class, 'update'])->name('products.update');
-    Route::delete('/products/{id}', [AdminProductController::class, 'destroy'])->name('products.destroy');
-    Route::patch('/products/{id}/toggle-active', [AdminProductController::class, 'toggleActive'])->name('products.toggle-active');
+    // Product Management
+    Route::prefix('products')->name('products.')->group(function () {
+        Route::get('/', [AdminProductController::class, 'index'])->name('index');
+        Route::post('/', [AdminProductController::class, 'store'])->name('store');
+        Route::put('/{product}', [AdminProductController::class, 'update'])->name('update');
+        Route::delete('/{product}', [AdminProductController::class, 'destroy'])->name('destroy');
+        Route::patch('/{product}/toggle-active', [AdminProductController::class, 'toggleActive'])->name('toggle-active');
+    });
 
-    /**
-     * Admin Category Management Routes
-     * Uses Laravel's resource controller for RESTful operations
-     * 
-     * GET    /admin/categories        -> index()   - List all categories (JSON)
-     * POST   /admin/categories        -> store()   - Create new category
-     * PUT    /admin/categories/{id}   -> update()  - Update existing category
-     * DELETE /admin/categories/{id}   -> destroy() - Delete category
-     */
-    Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
-    Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
-    Route::put('/categories/{id}', [AdminCategoryController::class, 'update'])->name('categories.update');
-    Route::delete('/categories/{id}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
-});
+    // Category Management
+    Route::prefix('categories')->name('categories.')->group(function () {
+        Route::get('/', [AdminCategoryController::class, 'index'])->name('index');
+        Route::post('/', [AdminCategoryController::class, 'store'])->name('store');
+        Route::put('/{category}', [AdminCategoryController::class, 'update'])->name('update');
+        Route::delete('/{category}', [AdminCategoryController::class, 'destroy'])->name('destroy');
+    });
 
-// Also make the /dashboard route point to admin dashboard for convenience (admin only)
-Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    // Order Management (Admin side)
+    // TODO: Create AdminOrderController with these methods
+    // Route::prefix('orders')->name('orders.')->group(function () {
+    //     Route::get('/', [AdminOrderController::class, 'index'])->name('index');
+    //     Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');
+    //     Route::patch('/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('update-status');
+    // });
 });
 
 require __DIR__ . '/auth.php';

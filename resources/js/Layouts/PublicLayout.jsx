@@ -58,7 +58,7 @@ export default function PublicLayout({ children }) {
 
                             {user ? (
                                 <Link
-                                    href={route('dashboard')}
+                                    href={user.is_admin ? route('admin.dashboard') : route('orders.index')}
                                     className="p-2 hover:bg-gray-50 rounded-full transition-colors"
                                 >
                                     <User className="w-5 h-5" />

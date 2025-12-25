@@ -98,19 +98,19 @@ class AdminCategoryController extends Controller
     /**
      * Update the specified category in the database
      * 
+     * Uses route model binding
+     * 
      * Handles:
      * - Updating category name, description, and active status
      * - Regenerating slug if name changes
      * - Ensuring slug uniqueness
      * 
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Category $category)
     {
-        $category = Category::findOrFail($id);
-
         // Validate incoming request data
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -120,6 +120,13 @@ class AdminCategoryController extends Controller
         ]);
 
         try {
+            // Prevent category from being its own parent
+            if (isset($validated['parent_id']) && $validated['parent_id'] == $category->id) {
+                return response()->json([
+                    'message' => 'A category cannot be its own parent',
+                ], 422);
+            }
+
             // Regenerate slug if category name has changed
             if ($category->name !== $validated['name']) {
                 $slug = Str::slug($validated['name']);
@@ -127,7 +134,7 @@ class AdminCategoryController extends Controller
                 $counter = 1;
                 
                 // Ensure new slug is unique (excluding current category)
-                while (Category::where('slug', $slug)->where('id', '!=', $id)->exists()) {
+                while (Category::where('slug', $slug)->where('id', '!=', $category->id)->exists()) {
                     $slug = $originalSlug . '-' . $counter;
                     $counter++;
                 }
@@ -154,6 +161,8 @@ class AdminCategoryController extends Controller
     /**
      * Remove the specified category from the database
      * 
+     * Uses route model binding
+     * 
      * Handles:
      * - Checking if category has products
      * - Preventing deletion if products exist (to maintain data integrity)
@@ -162,21 +171,29 @@ class AdminCategoryController extends Controller
      * Note: Products with this category will have their category_id set to null
      * due to the 'onDelete('set null')' constraint in the migration
      * 
-     * @param  int  $id
+     * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
+    public function destroy(Category $category)
     {
         try {
-            $category = Category::findOrFail($id);
-            
             // Check if category has products
-            $productsCount = Product::where('category_id', $id)->count();
+            $productsCount = $category->products()->count();
             
             if ($productsCount > 0) {
                 return response()->json([
                     'message' => 'Cannot delete category with existing products. Please reassign or delete the products first.',
                     'products_count' => $productsCount
+                ], 422);
+            }
+
+            // Check if category has child categories
+            $childrenCount = $category->children()->count();
+            
+            if ($childrenCount > 0) {
+                return response()->json([
+                    'message' => 'Cannot delete category with subcategories. Please delete or reassign the subcategories first.',
+                    'children_count' => $childrenCount
                 ], 422);
             }
 

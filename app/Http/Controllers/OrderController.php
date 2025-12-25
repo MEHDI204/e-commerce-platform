@@ -13,7 +13,11 @@ use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
-    // Get user's orders
+    /**
+     * Display a listing of the user's orders
+     * 
+     * @return \Inertia\Response
+     */
     public function index()
     {
         $orders = Order::with('items.product')
@@ -26,7 +30,11 @@ class OrderController extends Controller
         ]);
     }
 
-    // Show checkout page
+    /**
+     * Show the checkout page
+     * 
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
+     */
     public function checkout()
     {
         $cartItems = CartItem::with('product')
@@ -35,6 +43,19 @@ class OrderController extends Controller
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
+        }
+
+        // Validate all products are still active and in stock
+        foreach ($cartItems as $item) {
+            if (!$item->product->is_active) {
+                return redirect()->route('cart.index')
+                    ->withErrors(['cart' => "Product '{$item->product->name}' is no longer available."]);
+            }
+            
+            if ($item->product->stock_quantity < $item->quantity) {
+                return redirect()->route('cart.index')
+                    ->withErrors(['cart' => "Not enough stock for '{$item->product->name}'."]);
+            }
         }
 
         $subtotal = $cartItems->sum(function($item) {
@@ -57,7 +78,12 @@ class OrderController extends Controller
         ]);
     }
 
-    // Place order
+    /**
+     * Place an order
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -76,6 +102,14 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
+            // Final stock check before creating order
+            foreach ($cartItems as $item) {
+                if ($item->product->stock_quantity < $item->quantity) {
+                    DB::rollBack();
+                    return back()->withErrors(['stock' => "Insufficient stock for {$item->product->name}"]);
+                }
+            }
+
             $subtotal = $cartItems->sum(function($item) {
                 return $item->quantity * $item->product->price;
             });
@@ -116,23 +150,34 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return redirect()->route('orders.show', $order->id)->with('success', 'Order placed successfully!');
+            return redirect()->route('orders.show', $order)->with('success', 'Order placed successfully!');
+            
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Order creation failed: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to place order. Please try again.']);
         }
     }
 
-    // Show single order
-    public function show($id)
+    /**
+     * Display the specified order
+     * 
+     * Uses route model binding
+     * 
+     * @param  \App\Models\Order  $order
+     * @return \Inertia\Response
+     */
+    public function show(Order $order)
     {
-        $order = Order::with('items.product', 'shippingAddress', 'billingAddress')
-            ->where('user_id', Auth::id())
-            ->findOrFail($id);
+        // Ensure user can only view their own orders
+        if ($order->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $order->load('items.product', 'shippingAddress', 'billingAddress');
 
         return Inertia::render('Orders/Show', [
             'order' => $order,
         ]);
     }
 }
-

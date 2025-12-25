@@ -11,7 +11,11 @@ use Illuminate\Support\Facades\Session;
 
 class CartController extends Controller
 {
-    // Get cart items
+    /**
+     * Display the shopping cart
+     * 
+     * @return \Inertia\Response
+     */
     public function index()
     {
         $cartItems = CartItem::with('product.category', 'product.images')
@@ -40,7 +44,12 @@ class CartController extends Controller
         ]);
     }
 
-    // Add item to cart
+    /**
+     * Add item to cart
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -49,6 +58,11 @@ class CartController extends Controller
         ]);
 
         $product = Product::findOrFail($request->product_id);
+
+        // Check if product is active
+        if (!$product->is_active) {
+            return back()->withErrors(['product' => 'This product is no longer available.']);
+        }
 
         // Check stock
         if ($product->stock_quantity < $request->quantity) {
@@ -66,6 +80,11 @@ class CartController extends Controller
         ->first();
 
         if ($cartItem) {
+            // Check if adding quantity exceeds stock
+            if ($product->stock_quantity < ($cartItem->quantity + $request->quantity)) {
+                return back()->withErrors(['quantity' => 'Not enough stock available.']);
+            }
+            
             $cartItem->quantity += $request->quantity;
             $cartItem->save();
         } else {
@@ -80,21 +99,33 @@ class CartController extends Controller
         return redirect()->route('cart.index')->with('success', 'Product added to cart!');
     }
 
-    // Update cart item quantity
-    public function update(Request $request, $id)
+    /**
+     * Update cart item quantity
+     * 
+     * Uses route model binding for CartItem
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\CartItem  $cartItem
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(Request $request, CartItem $cartItem)
     {
         $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $cartItem = CartItem::where(function($query) {
-            if (Auth::check()) {
-                $query->where('user_id', Auth::id());
-            } else {
-                $query->where('session_id', Session::getId());
+        // Verify cart item belongs to current user/session
+        if (Auth::check()) {
+            if ($cartItem->user_id !== Auth::id()) {
+                abort(403, 'Unauthorized action.');
             }
-        })->findOrFail($id);
+        } else {
+            if ($cartItem->session_id !== Session::getId()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
 
+        // Check stock availability
         if ($cartItem->product->stock_quantity < $request->quantity) {
             return back()->withErrors(['quantity' => 'Not enough stock available.']);
         }
@@ -105,23 +136,37 @@ class CartController extends Controller
         return redirect()->route('cart.index')->with('success', 'Cart updated!');
     }
 
-    // Remove item from cart
-    public function destroy($id)
+    /**
+     * Remove item from cart
+     * 
+     * Uses route model binding for CartItem
+     * 
+     * @param  \App\Models\CartItem  $cartItem
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(CartItem $cartItem)
     {
-        $cartItem = CartItem::where(function($query) {
-            if (Auth::check()) {
-                $query->where('user_id', Auth::id());
-            } else {
-                $query->where('session_id', Session::getId());
+        // Verify cart item belongs to current user/session
+        if (Auth::check()) {
+            if ($cartItem->user_id !== Auth::id()) {
+                abort(403, 'Unauthorized action.');
             }
-        })->findOrFail($id);
+        } else {
+            if ($cartItem->session_id !== Session::getId()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
 
         $cartItem->delete();
 
         return redirect()->route('cart.index')->with('success', 'Item removed from cart!');
     }
 
-    // Get cart count (for navigation)
+    /**
+     * Get cart count for navigation badge
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function count()
     {
         $count = CartItem::where(function($query) {
@@ -135,4 +180,3 @@ class CartController extends Controller
         return response()->json(['count' => $count]);
     }
 }
-
