@@ -42,6 +42,14 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Orders
                                 </NavLink>
+                                {user.is_admin && (
+                                    <NavLink
+                                        href={route('admin.dashboard')}
+                                        active={route().current('admin.dashboard')}
+                                    >
+                                        Dashboard
+                                    </NavLink>
+                                )}
                             </div>
                         </div>
 
