@@ -12,15 +12,14 @@ RUN install-php-extensions \
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
+
 WORKDIR /app
 
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
-
-COPY --from=node:20 /usr/local/bin/node /usr/local/bin/node
-COPY --from=node:20 /usr/local/lib/node_modules /usr/local/lib/node_modules
-COPY --from=node:20 /usr/local/bin/npm /usr/local/bin/npm
 
 RUN npm install && npm run build
 
