@@ -27,4 +27,4 @@ RUN cp .env.example .env
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "php artisan migrate --force && php artisan storage:link && php artisan optimize && frankenphp run --config /etc/caddy/Caddyfile"]
+CMD ["sh", "-c", "php artisan migrate --force && php artisan storage:link && php artisan optimize && frankenphp php-server --listen :${PORT:-8080} --root /app/public"]
