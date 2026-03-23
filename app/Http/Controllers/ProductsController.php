@@ -9,15 +9,29 @@ use Inertia\Inertia;
 class ProductsController extends Controller
 {
     /**
+     * Display the home page with featured products
+     */
+    public function home()
+    {
+        $featuredProducts = Product::with('category', 'images')->active()->orderBy('created_at', 'desc')->take(4)->get();
+        
+        $featuredProducts->each(function($product) {
+            $product->primary_image = $product->images->where('is_primary', true)->first() 
+                ?? $product->images->first();
+        });
+
+        return Inertia::render('Home', [
+            'featuredProducts' => $featuredProducts
+        ]);
+    }
+
+    /**
      * Display a listing of all active products
-     * 
-     * @return \Inertia\Response
      */
     public function index()
     {
         $products = Product::with('category', 'images')->active()->orderBy('name')->get();
         
-        // Add primary_image to each product
         $products->each(function($product) {
             $product->primary_image = $product->images->where('is_primary', true)->first() 
                 ?? $product->images->first();
@@ -25,6 +39,33 @@ class ProductsController extends Controller
         
         return Inertia::render('Products/Index', [
             'products' => $products
+        ]);
+    }
+
+    /**
+     * Search products by query
+     */
+    public function search(Request $request)
+    {
+        $query = $request->input('q', '');
+        
+        $products = Product::with('category', 'images')
+            ->active()
+            ->when($query, function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%");
+            })
+            ->orderBy('name')
+            ->get();
+
+        $products->each(function($product) {
+            $product->primary_image = $product->images->where('is_primary', true)->first() 
+                ?? $product->images->first();
+        });
+
+        return Inertia::render('SearchResults', [
+            'products' => $products,
+            'query' => $query,
         ]);
     }
 

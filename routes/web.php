@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\PageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,10 +24,16 @@ use App\Http\Controllers\Api\SearchController;
 |--------------------------------------------------------------------------
 */
 
+// Static Pages
+Route::get('/about', [PageController::class, 'about'])->name('about');
+Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+Route::get('/help', [PageController::class, 'help'])->name('help');
+
 // Home & Products - Public browsing
-Route::get('/', [ProductsController::class, 'index'])->name('home');
+Route::get('/', [ProductsController::class, 'home'])->name('home');
 Route::get('/products', [ProductsController::class, 'index'])->name('products.index');
 Route::get('/products/{product}', [ProductsController::class, 'show'])->name('products.show');
+Route::get('/search', [ProductsController::class, 'search'])->name('search');
 
 // Categories - Public browsing (moved from auth)
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -96,12 +103,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 
     // Order Management (Admin side)
-    // TODO: Create AdminOrderController with these methods
-    // Route::prefix('orders')->name('orders.')->group(function () {
-    //     Route::get('/', [AdminOrderController::class, 'index'])->name('index');
-    //     Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');
-    //     Route::patch('/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('update-status');
-    // });
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [AdminOrderController::class, 'index'])->name('index');
+        Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');
+        Route::patch('/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('update-status');
+        Route::get('/statistics', [AdminOrderController::class, 'statistics'])->name('statistics');
+    });
 });
 
 require __DIR__ . '/auth.php';
