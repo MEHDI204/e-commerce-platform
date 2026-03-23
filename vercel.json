@@ -1,0 +1,13 @@
+{
+    "version": 2,
+    "framework": null,
+    "buildCommand": "npm install && npm run build",
+    "outputDirectory": "public",
+    "installCommand": "",
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/index.php"
+        }
+    ]
+}
